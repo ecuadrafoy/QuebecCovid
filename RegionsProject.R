@@ -1,3 +1,5 @@
+#Calculating the R0 for each region in the province of Quebec during the COVID-19 pandemic. 
+
 #installing packages (Only run once if you close the program)
 #####
 
