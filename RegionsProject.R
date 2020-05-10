@@ -64,6 +64,8 @@ quebec_regions_confirmed <- quebec_regions_confirmed %>%
   select(-cum_cases) %>%
   arrange(Regions, Date)
 
+quebec_regions_confirmed <- quebec_regions_confirmed %>% filter(!is.na(Date)) #For some reason a no date row with the total cases was being added. 
+
 quebec_regions_confirmed_wide <- quebec_regions_confirmed %>%
   pivot_wider(names_from = Regions,
               values_from = incident_cases)
@@ -238,7 +240,7 @@ alt_si_sd <- 3.4
 
 #####
 #Predictions, only modify variable reg
-reg <- "Que"
+reg <- "Mtl"
 
 #Plot Incidence of Region (Cases over time)
 epicurve_q(reg)
