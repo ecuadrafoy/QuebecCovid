@@ -158,7 +158,8 @@ plot_R_q <- function(reg) {
   
   plot(estimate_R_obj, "R") + labs(title=paste("Instantaneous effective R0 for region - ", reg, ":", 
                                                round(tail(estimate_R_obj[["R"]][["Mean(R)"]],n=1),digits=2),
-                                               "\nDate: ",today()))
+                                               "\nDate: ",today()))+
+    theme_clean()
   
 }
 
@@ -237,7 +238,7 @@ alt_si_sd <- 3.4
 
 #####
 #Predictions, only modify variable reg
-reg <- "Mtl"
+reg <- "Que"
 
 #Plot Incidence of Region (Cases over time)
 epicurve_q(reg)
