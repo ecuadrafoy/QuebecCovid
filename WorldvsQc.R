@@ -298,3 +298,64 @@ lambda_plot_w(reg)
 
 #Plot R0 values
 plot_R_w(reg)
+
+
+#####
+#Combined metrics
+
+table_R <- function(df, col) {
+  
+  cases_regions <- df %>%
+    filter(Regions == col)%>%
+    #filter(Date >= ymd("2020-02-28"))%>%
+    filter(!is.na(incident_cases))%>%
+    filter(incident_cases > 0)%>%
+    select(Date, incident_cases)%>%
+    rename(dates=Date,
+           I=incident_cases)
+  estimate_R_obj <- estimate_R(cases_regions$I,
+                               method="uncertain_si",
+                               config = make_config(list(
+                                 mean_si = 7.5, std_mean_si = 2.0,
+                                 min_mean_si = 1, max_mean_si = 8.4,
+                                 std_si = 3.4, std_std_si = 1.0,
+                                 min_std_si = 0.5, max_std_si = 4.0,
+                                 n1 = 1000, n2 = 1000)))
+  
+  return(tibble(time = estimate_R_obj[["R"]][["t_start"]], R = estimate_R_obj[["R"]][["Mean(R)"]]))
+  
+}
+
+
+
+
+
+Quebec <- table_R(df, "Quebec")
+Berlin <- table_R(df, "Berlin")
+NewYork <- table_R(df, "NewYork")
+Milan <- table_R(df, "Lombardy")
+
+
+
+
+#All Tables
+
+Rdata <- list(Quebec, Berlin, NewYork, Milan) %>% 
+  reduce(full_join, by="time") %>% arrange(time) %>%
+  rename(Quebec = R.x, Berlin = R.y, NewYork = R.x.x, Lombardy = R.y.y)
+Rdata_long <- gather(Rdata, region, R_value, Quebec:Lombardy, factor_key = TRUE) %>% arrange(time,region)
+
+Rdata_long %>% ggplot(aes(x=time, y = R_value, group=region))+
+  xlab("Days Since the First Case Recorded") + ylab("Mean Instant R0 value (Standard deviation not shown)")+
+  ggtitle("Comparing Instantaneous R0 between Regions Around the World") +
+  theme_light()+
+  geom_line(aes(colour=region), size = 1, linetype = 1)+
+  geom_hline(yintercept=1, linetype="dashed")+
+  scale_color_hue()+
+  scale_colour_discrete(name = "Regions",
+                      breaks = c("Quebec", "Berlin", "NewYork", "Lombardy"),
+                      labels = c("Province of Quebec", "Berlin", "New York State", "Region of Lombardy"))
+
+
+
+R0_plot
