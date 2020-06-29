@@ -10,7 +10,7 @@ library(ggthemes)
 library(hrbrthemes)
 library(rvest)
 library(gt)
-library(deSolve)
+#library(deSolve)
 library(EpiEstim)
 library(incidence)
 library(distcrete)
@@ -37,8 +37,8 @@ italy_regions <- italy_outbreak_table %>% html_nodes("table")%>%.[[2]]%>%html_ta
   mutate(Lombardy = str_trim(Lombardy)) %>%  #Remove the trailing space at the front of the number
   mutate_at('Lombardy',as.numeric) %>% #Properly Convert to Numbers
   drop_na()%>%
-  mutate(Date=anytime(Date)) %>% 
-  mutate(Date=ymd(format(Date,"2020-%m-%d")))
+  mutate(Date=anytime(Date)) %>%
+  mutate(Date=ymd(format(Date,"2020-%m-%d", origin="1970-01-01")))
 
 #Germany Data
 
@@ -54,14 +54,8 @@ ger_regions <- ger_outbreak_table %>% html_nodes("table")%>%.[[3]]%>%html_table(
   drop_na() %>%
   mutate(Berlin = Berlin - lag(Berlin,default = first(Berlin)))%>%
   mutate(Date=anytime(Date)) %>%
-  mutate(Date=ymd(format(Date,"2020-%m-%d")))
+  mutate(Date=ymd(format(Date,"2020-%m-%d", origin="1970-01-01")))
 
-#Australia Data
-
-aus_wikipedia_data_url <- "https://en.wikipedia.org/wiki/COVID-19_pandemic_in_Australia"
-aus_outbreak_table <- read_html(aus_wikipedia_data_url)
-
-#aus_regions <- aus_outbreak_table %>% html_nodes('table') %>% [[4]] %>% html_table()
 
 #New York State data
 
@@ -77,7 +71,7 @@ ny_regions <- ny_outbreak_table %>% html_nodes('table') %>% .[[7]]%>%html_table(
   mutate_at('NewYork',as.numeric)%>%
   mutate(NewYork = NewYork - lag(NewYork ,default = first(NewYork)))%>%
   mutate(Date=anytime(Date)) %>%
-  mutate(Date=ymd(format(Date,"2020-%m-%d")))
+  mutate(Date=ymd(format(Date,"2020-%m-%d", origin="1970-01-01")))
 
 #Quebec Province Data
 
@@ -93,14 +87,15 @@ qc_cases <- quebec_outbreak_table %>% html_nodes("table") %>%
   slice(-(1))%>%
   mutate_if(is.character, rm_commas)%>%
   mutate(Quebec = str_replace_all(Quebec,"\\[.*\\]",""))%>%
+  mutate(Date = str_replace_all(Date,"\\[.*\\]",""))%>%
   mutate_at('Quebec',as.numeric)%>%
   mutate(Date=anytime(Date)) %>%
-  mutate(Date=ymd(format(Date,"2020-%m-%d")))
+  mutate(Date=ymd(format(Date,"2020-%m-%d", origin="1970-01-01")))
 
   
 #Merging all Tables
 data <- list(italy_regions, ny_regions, qc_cases, ger_regions) %>% 
-  reduce(full_join, by="Date") %>% arrange(Date) %>%
+  reduce(full_join, by="Date", origin = "1970-01-01") %>% arrange(Date) %>%
   replace(is.na(.),0)
 
 #Final Table
@@ -281,23 +276,6 @@ si_sd <- 3.4
 alt_si_mean <- 7.5
 alt_si_sd <- 3.4
 ##End of the models
-
-
-
-
-#####
-#Predictions, only modify variable reg
-reg <- "Quebec"
-
-#Plot Incidence of Region (Cases over time)
-epicurve_w(reg)
-
-#Plot infectiousness
-#If the outbreak is brought under control, then the orange bars need to be falling prior to or at the date of the last observation
-lambda_plot_w(reg)
-
-#Plot R0 values
-plot_R_w(reg)
 
 
 #####
