@@ -357,5 +357,3 @@ Rdata_long %>% ggplot(aes(x=time, y = R_value, group=region))+
                       labels = c("Province of Quebec", "Berlin", "New York State", "Region of Lombardy"))
 
 
-
-R0_plot
