@@ -90,7 +90,8 @@ qc_cases <- quebec_outbreak_table %>% html_nodes("table") %>%
   mutate(Date = str_replace_all(Date,"\\[.*\\]",""))%>%
   mutate_at('Quebec',as.numeric)%>%
   mutate(Date=anytime(Date)) %>%
-  mutate(Date=ymd(format(Date,"2020-%m-%d", origin="1970-01-01")))
+  mutate(Date=ymd(format(Date,"2020-%m-%d", origin="1970-01-01")))%>%
+  filter(!is.na(Quebec))
 
   
 #Merging all Tables
@@ -323,10 +324,27 @@ Rdata <- list(Quebec, Berlin, NewYork, Milan) %>%
   rename(Quebec = R.x, Berlin = R.y, NewYork = R.x.x, Lombardy = R.y.y)
 Rdata_long <- gather(Rdata, region, R_value, Quebec:Lombardy, factor_key = TRUE) %>% arrange(time,region)
 
+
+#big version
 Rdata_long %>% ggplot(aes(x=time, y = R_value, group=region))+
   xlab("Days Since the First Case Recorded") + ylab("Mean Instant R0 value (Standard deviation not shown)")+
   ggtitle("Comparing Instantaneous R0 between Regions Around the World") +
-  theme_light()+
+  theme_clean()+
+  geom_line(aes(colour=region), size = 1, linetype = 1)+
+  geom_hline(yintercept=1, linetype="dashed")+
+  scale_color_hue()+
+  scale_colour_discrete(name = "Regions",
+                        breaks = c("Quebec", "Berlin", "NewYork", "Lombardy"),
+                        labels = c("Province of Quebec", "Berlin", "New York State", "Region of Lombardy"))
+
+#Small Version
+
+Rdata_long %>% ggplot(aes(x=time, y = R_value, group=region))+
+  xlab("Days Since the First Case Recorded") + ylab("Mean Instant R0 value (Standard deviation not shown)")+
+  ggtitle("Comparing Instantaneous R0 between Regions Around the World") +
+  scale_x_continuous(limits = c(20,160) )+
+  theme_clean()+
+  coord_cartesian(xlim=c(20,160), ylim = c(0,5))+
   geom_line(aes(colour=region), size = 1, linetype = 1)+
   geom_hline(yintercept=1, linetype="dashed")+
   scale_color_hue()+
